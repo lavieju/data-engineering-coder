@@ -146,64 +146,6 @@ def insert_data(data_to_load, conn):
     else:
         raise Exception('Data length does not match loaded rows')
     
-
-
-# def insert_data(data, pivot_inserted, conn):  
-    
-#     if pivot_inserted == False:
-#         raise Exception('Pivot table has not been executed')
-#         return False
-    
-#     rows_count_to_load = len(data)  
-    
-#     with conn.cursor() as cursor:    
-#         cursor.execute("""
-#                               DROP TABLE IF EXISTS julianlavie16_coderhouse.spotify_data
-#                               """)
-    
-    
-#         cursor.execute("""
-#                               CREATE TABLE IF NOT EXISTS julianlavie16_coderhouse.spotify_data
-#                               (
-#                                   id VARCHAR(50) primary key
-#                                   ,track_id VARCHAR(50)
-#                                   ,track_name VARCHAR(300)   
-#                                   ,track_popularity INTEGER
-#                                   ,track_duration INTEGER   
-#                                   ,artist_name VARCHAR(200)   
-#                                   ,artist_followers INTEGER  
-#                                   ,artist_popularity INTEGER 
-#                                   ,album_name VARCHAR(250)
-#                                   ,album_release_date VARCHAR(100)
-#                                   ,album_total_tracks INTEGER
-#                                   ,has_collaboration BOOLEAN
-#                                   )
-#                               """)
-    
-    
-#         cursor.execute("""
-#                               INSERT INTO julianlavie16_coderhouse.spotify_data 
-#                               SELECT * FROM julianlavie16_coderhouse.spotify_data_pivot
-#                               """)
-                              
-#         cursor.execute("""
-#                               SELECT count(*) FROM julianlavie16_coderhouse.spotify_data
-#                               """)
-#         rows_loaded = cursor.fetchone()[0]
-        
-#         if rows_count_to_load == rows_loaded:
-#             cursor.execute("""
-#                                   DROP TABLE IF EXISTS julianlavie16_coderhouse.spotify_data_pivot
-#                                   """)
-#             print("Data imported successfully!")
-#             conn.commit()
-#         else:
-#             raise Exception('Data length does not match loaded rows')
-    
-#     conn.close()
-    
-#     return data
-
                           
 data = get_and_transform_artists_data(artists)
 insert_data(data, conn)
