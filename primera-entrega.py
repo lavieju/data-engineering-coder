@@ -11,7 +11,7 @@ load_dotenv()
 
 #with open("/Users/julianlavie/Desktop/client_secret_spotify.txt",'r') as f:
 #    client_secret = f.read()
-client_secret = os.environ.get('spotofy_client_secret')    
+client_secret = os.environ.get('spotify_client_secret')    
 client_id = os.environ.get('spotify_client_id')
 client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
@@ -92,16 +92,17 @@ def get_and_transform_artists_data(artists):
     
     return response_flat_list
 
-
-
-
-def insert_data_pivot(data_to_load, conn):
+def insert_data(data_to_load, conn):
     data = pd.DataFrame(data_to_load)
     rows_count_to_load = len(data)
     
     with conn.cursor() as cursor:
+
         cursor.execute("""
-                              CREATE TABLE IF NOT EXISTS julianlavie16_coderhouse.spotify_data_pivot
+                              DROP TABLE IF EXISTS julianlavie16_coderhouse.spotify_data
+                              """)
+        cursor.execute("""
+                              CREATE TABLE IF NOT EXISTS julianlavie16_coderhouse.spotify_data
                               (
                                   id VARCHAR(50) primary key
                                   ,track_id VARCHAR(50)
@@ -119,12 +120,12 @@ def insert_data_pivot(data_to_load, conn):
                               """)
                               
         insert_query = """
-        INSERT INTO julianlavie16_coderhouse.spotify_data_pivot (
-        id, track_id, track_name, track_popularity, track_duration, artist_name,
-        artist_followers, artist_popularity, album_name, album_release_date,
-        album_total_tracks, has_collaboration
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
+                            INSERT INTO julianlavie16_coderhouse.spotify_data (
+                            id, track_id, track_name, track_popularity, track_duration, artist_name,
+                            artist_followers, artist_popularity, album_name, album_release_date,
+                            album_total_tracks, has_collaboration
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """
         
         for index, row in data.iterrows():
             cursor.execute(insert_query, (
@@ -134,82 +135,76 @@ def insert_data_pivot(data_to_load, conn):
             row['album_total_tracks'], row['has_collaboration']
             ))
             
-
-        cursor.execute("""
-                              SELECT count(*) FROM julianlavie16_coderhouse.spotify_data_pivot
-                              """)
-        rows_loaded_pivot = cursor.fetchone()[0]
-    
-    if rows_loaded_pivot == rows_count_to_load:
-        print("Pivot import has been done successfully")
-        conn.commit()
-        return True
-    else:
-        raise Exception('Data length does not match loaded rows')
-        return False
-    
-
-
-def insert_data(data, pivot_inserted, conn):  
-    
-    if pivot_inserted == False:
-        raise Exception('Pivot table has not been executed')
-        return False
-    
-    rows_count_to_load = len(data)  
-    
-    with conn.cursor() as cursor:    
-        cursor.execute("""
-                              DROP TABLE IF EXISTS julianlavie16_coderhouse.spotify_data
-                              """)
-    
-    
-        cursor.execute("""
-                              CREATE TABLE IF NOT EXISTS julianlavie16_coderhouse.spotify_data
-                              (
-                                  id VARCHAR(50) primary key
-                                  ,track_id VARCHAR(50)
-                                  ,track_name VARCHAR(300)   
-                                  ,track_popularity INTEGER
-                                  ,track_duration INTEGER   
-                                  ,artist_name VARCHAR(200)   
-                                  ,artist_followers INTEGER  
-                                  ,artist_popularity INTEGER 
-                                  ,album_name VARCHAR(250)
-                                  ,album_release_date VARCHAR(100)
-                                  ,album_total_tracks INTEGER
-                                  ,has_collaboration BOOLEAN
-                                  )
-                              """)
-    
-    
-        cursor.execute("""
-                              INSERT INTO julianlavie16_coderhouse.spotify_data 
-                              SELECT * FROM julianlavie16_coderhouse.spotify_data_pivot
-                              """)
-                              
         cursor.execute("""
                               SELECT count(*) FROM julianlavie16_coderhouse.spotify_data
                               """)
         rows_loaded = cursor.fetchone()[0]
+    
+    if rows_loaded == rows_count_to_load:
+        print("Data import has been done successfully")
+        conn.commit()
+    else:
+        raise Exception('Data length does not match loaded rows')
+    
+
+
+# def insert_data(data, pivot_inserted, conn):  
+    
+#     if pivot_inserted == False:
+#         raise Exception('Pivot table has not been executed')
+#         return False
+    
+#     rows_count_to_load = len(data)  
+    
+#     with conn.cursor() as cursor:    
+#         cursor.execute("""
+#                               DROP TABLE IF EXISTS julianlavie16_coderhouse.spotify_data
+#                               """)
+    
+    
+#         cursor.execute("""
+#                               CREATE TABLE IF NOT EXISTS julianlavie16_coderhouse.spotify_data
+#                               (
+#                                   id VARCHAR(50) primary key
+#                                   ,track_id VARCHAR(50)
+#                                   ,track_name VARCHAR(300)   
+#                                   ,track_popularity INTEGER
+#                                   ,track_duration INTEGER   
+#                                   ,artist_name VARCHAR(200)   
+#                                   ,artist_followers INTEGER  
+#                                   ,artist_popularity INTEGER 
+#                                   ,album_name VARCHAR(250)
+#                                   ,album_release_date VARCHAR(100)
+#                                   ,album_total_tracks INTEGER
+#                                   ,has_collaboration BOOLEAN
+#                                   )
+#                               """)
+    
+    
+#         cursor.execute("""
+#                               INSERT INTO julianlavie16_coderhouse.spotify_data 
+#                               SELECT * FROM julianlavie16_coderhouse.spotify_data_pivot
+#                               """)
+                              
+#         cursor.execute("""
+#                               SELECT count(*) FROM julianlavie16_coderhouse.spotify_data
+#                               """)
+#         rows_loaded = cursor.fetchone()[0]
         
-        if rows_count_to_load == rows_loaded:
-            cursor.execute("""
-                                  DROP TABLE IF EXISTS julianlavie16_coderhouse.spotify_data_pivot
-                                  """)
-            print("Data imported successfully!")
-            conn.commit()
-        else:
-            raise Exception('Data length does not match loaded rows')
+#         if rows_count_to_load == rows_loaded:
+#             cursor.execute("""
+#                                   DROP TABLE IF EXISTS julianlavie16_coderhouse.spotify_data_pivot
+#                                   """)
+#             print("Data imported successfully!")
+#             conn.commit()
+#         else:
+#             raise Exception('Data length does not match loaded rows')
     
-    conn.close()
+#     conn.close()
     
-    return data
+#     return data
 
                           
-    
-        
 data = get_and_transform_artists_data(artists)
-pivot_insert = insert_data_pivot(data, conn)
-insert_data = insert_data(data, pivot_insert, conn)
+insert_data(data, conn)
     

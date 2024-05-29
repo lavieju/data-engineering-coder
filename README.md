@@ -17,3 +17,6 @@ pip install --upgrade pip
 
 After, install the requirements by running:
 pip install -r requirements.txt
+
+To run the script primera-entrega please run:
+python3 primera-entrega.py
