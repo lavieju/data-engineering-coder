@@ -9,8 +9,6 @@ from dotenv import load_dotenv
 
 load_dotenv() 
 
-#with open("/Users/julianlavie/Desktop/client_secret_spotify.txt",'r') as f:
-#    client_secret = f.read()
 client_secret = os.environ.get('spotify_client_secret')    
 client_id = os.environ.get('spotify_client_id')
 client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
@@ -21,8 +19,6 @@ sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 url = os.environ.get('redshift_url')
 database = os.environ.get('redshift_database')
 user = os.environ.get('redshift_user')
-#with open("/Users/julianlavie/Desktop/password_redshift.txt",'r') as f:
-#    database_password= f.read()
 database_password = os.environ.get('redshift_password')
 
 
