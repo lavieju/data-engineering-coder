@@ -14,7 +14,7 @@ client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 
-def transform_data(artist_data, tracks_data):
+def transform_data(artist_data, tracks_data, album_data):
     data = []
     for track in tracks_data['tracks']:
         track_id = track['id']
@@ -28,6 +28,9 @@ def transform_data(artist_data, tracks_data):
         album_release_date = track['album']['release_date']
         album_total_tracks = track['album']['total_tracks']
         has_collaboration = len(track['artists']) > 1
+        album_release_date_precision = track['album']['release_date_precision']
+        total_artist_album = len(album_data['items'])
+        is_single = track['album']['album_type'] == 'single'
         
         row = {
             'track_id': track_id,
@@ -40,7 +43,11 @@ def transform_data(artist_data, tracks_data):
             'album_name': album_name,
             'album_release_date': album_release_date,
             'album_total_tracks': album_total_tracks,
-            'has_collaboration': has_collaboration
+            'has_collaboration': has_collaboration,
+            'album_release_date_precision': album_release_date_precision,
+            'total_artist_album': total_artist_album,
+            'is_single': is_single
+
         }
         
         data.append(row)
@@ -54,7 +61,8 @@ def get_and_transform_artists_data(artists):
     for artist in artists:
         artist_response_data = sp.artist(artist)
         top_tracks_response_data = sp.artist_top_tracks(artist)
-        result = transform_data(artist_response_data, top_tracks_response_data)
+        albums_data = sp.artist_albums(artist)
+        result = transform_data(artist_response_data, top_tracks_response_data, albums_data)
         response_list.append(result)
         response_flat_list = [item for sublist in response_list for item in sublist]
 
@@ -86,6 +94,10 @@ def insert_data(data_to_load, conn):
                                   ,album_release_date VARCHAR(100)   
                                   ,album_total_tracks INTEGER
                                   ,has_collaboration BOOLEAN
+                                  ,album_release_date_precision VARCHAR(100)
+                                  ,total_artist_album INTEGER
+                                  ,is_single BOOLEAN
+
                                   )
                               """)
                               
@@ -93,8 +105,9 @@ def insert_data(data_to_load, conn):
                             INSERT INTO julianlavie16_coderhouse.spotify_data (
                             id, track_id, track_name, track_popularity, track_duration, artist_name,
                             artist_followers, artist_popularity, album_name, album_release_date,
-                            album_total_tracks, has_collaboration
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            album_total_tracks, has_collaboration, album_release_date_precision,
+                            total_artist_album, is_single
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """
         
         for index, row in data.iterrows():
@@ -102,7 +115,8 @@ def insert_data(data_to_load, conn):
             str(uuid.uuid4()),
             row['track_id'], row['track_name'], row['track_popularity'], row['track_duration'], row['artist_name'],
             row['artist_followers'], row['artist_popularity'], row['album_name'], row['album_release_date'],
-            row['album_total_tracks'], row['has_collaboration']
+            row['album_total_tracks'], row['has_collaboration'], row['album_release_date_precision'], row['total_artist_album'],
+            row['is_single']
             ))
             
         cursor.execute("""
