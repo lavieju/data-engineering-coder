@@ -20,3 +20,7 @@ pip install -r requirements.txt
 
 To run the script primera-entrega please run:
 python3 primera-entrega.py
+
+# Docker and Airflow
+
+Move .env with database and spotify keys to dags folder
