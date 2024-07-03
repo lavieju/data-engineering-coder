@@ -1,9 +1,9 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from database import conn
 import pandas as pd
 import uuid
 import os
+import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv() 
@@ -12,6 +12,11 @@ client_secret = os.environ.get('spotify_client_secret')
 client_id = os.environ.get('spotify_client_id')
 client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+url = os.environ.get('redshift_url')
+database = os.environ.get('redshift_database')
+user = os.environ.get('redshift_user')
+database_password = os.environ.get('redshift_password')
 
 
 def transform_data(artist_data, tracks_data, album_data):
@@ -70,9 +75,24 @@ def get_and_transform_artists_data(artists):
     return response_flat_list
 
 
-def insert_data(data_to_load, conn):
+def insert_data(data_to_load):
     data = pd.DataFrame(data_to_load)
     rows_count_to_load = len(data)
+
+    try:
+        conn = psycopg2.connect(
+        host = url,
+        dbname = database,
+        user = user,
+        password = database_password,
+        port='5439'
+        )
+        print("Connected successfully!")
+        #return conn
+        
+    except Exception as e:
+        print("It has not been able to make the connection")
+        print(e)
     
     with conn.cursor() as cursor:
 

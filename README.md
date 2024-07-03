@@ -1,5 +1,7 @@
 # data-engineering-coder
 
+# Using it running a simple file
+
 This project aims to get data from spotify and load it in a database.
 Data may be of interesting to artist, producers and other players in music industry.
 
@@ -18,5 +20,12 @@ pip install --upgrade pip
 After, install the requirements by running:
 pip install -r requirements.txt
 
-To run the script primera-entrega please run:
-python3 primera-entrega.py
+To run the script please run:
+python3 etl.py
+
+# To use it with Docker and Airflow
+
+Move .env with database and spotify keys to dags folder
+
+Run:
+docker compose up --build
